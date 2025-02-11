@@ -8,7 +8,6 @@ import at.hannibal2.skyhanni.data.jsonobjects.local.FriendsJson
 import at.hannibal2.skyhanni.data.jsonobjects.local.JacobContestsJson
 import at.hannibal2.skyhanni.data.jsonobjects.local.KnownFeaturesJson
 import at.hannibal2.skyhanni.data.jsonobjects.local.VisualWordsJson
-import at.hannibal2.skyhanni.events.LorenzEvent
 import at.hannibal2.skyhanni.features.misc.update.UpdateManager
 import at.hannibal2.skyhanni.test.command.ErrorManager
 import at.hannibal2.skyhanni.utils.ChatUtils
@@ -56,7 +55,7 @@ class ConfigManager {
 //             .registerIfBeta(FeatureTogglesByDefaultAdapter)
             .create()
 
-        var configDirectory = File("config/skyhanni")
+        val configDirectory = File("config/skyhanni")
     }
 
     private val logger = LorenzLogger("config_manager")
@@ -100,7 +99,7 @@ class ConfigManager {
         try {
             findPositionLinks(features, mutableSetOf())
         } catch (e: Exception) {
-            if (LorenzEvent.isInGuardedEventHandler || EventHandler.isInEventHandler) throw e
+            if (EventHandler.isInEventHandler) throw e
         }
     }
 

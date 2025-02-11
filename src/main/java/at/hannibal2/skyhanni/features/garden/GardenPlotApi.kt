@@ -1,9 +1,10 @@
 package at.hannibal2.skyhanni.features.garden
 
 import at.hannibal2.skyhanni.api.event.HandleEvent
+import at.hannibal2.skyhanni.data.IslandType
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
-import at.hannibal2.skyhanni.events.minecraft.RenderWorldEvent
+import at.hannibal2.skyhanni.events.minecraft.SkyHanniRenderWorldEvent
 import at.hannibal2.skyhanni.features.garden.pests.SprayType
 import at.hannibal2.skyhanni.features.misc.LockMouseLook
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
@@ -240,7 +241,7 @@ object GardenPlotApi {
                 val maxY = ((y - 2) * 96 + 48).toDouble()
                 val a = LorenzVec(minX, 0.0, minY)
                 val b = LorenzVec(maxX, 256.0, maxY)
-                val middle = a.interpolate(b, 0.5).copy(y = 10.0)
+                val middle = a.middle(b).copy(y = 10.0)
                 val box = a.axisAlignedTo(b).expand(0.0001, 0.0, 0.0001)
                 list.add(Plot(id, slot, box, middle))
                 slot++
@@ -250,16 +251,15 @@ object GardenPlotApi {
         plots = list
     }
 
-    @HandleEvent
+    @HandleEvent(onlyOnIsland = IslandType.GARDEN)
     fun onChat(event: SkyHanniChatEvent) {
-        if (!GardenApi.inGarden()) return
 
         plotSprayedPattern.matchMatcher(event.message) {
             val sprayName = group("spray")
             val plotName = group("plot")
 
             val plot = getPlotByName(plotName)
-            val spray = SprayType.getByName(sprayName) ?: return
+            val spray = SprayType.getByNameOrNull(sprayName) ?: return
 
             plot?.setSpray(spray, 30.minutes)
         }
@@ -283,9 +283,8 @@ object GardenPlotApi {
         }
     }
 
-    @HandleEvent
+    @HandleEvent(onlyOnIsland = IslandType.GARDEN)
     fun onInventoryFullyOpened(event: InventoryFullyOpenedEvent) {
-        if (!GardenApi.inGarden()) return
         if (event.inventoryName != "Configure Plots") return
 
         for (plot in plots) {
@@ -315,7 +314,7 @@ object GardenPlotApi {
 
     fun getPlotByID(plotId: Int) = plots.firstOrNull { it.id == plotId }
 
-    fun RenderWorldEvent.renderPlot(
+    fun SkyHanniRenderWorldEvent.renderPlot(
         plot: Plot,
         lineColor: Color,
         cornerColor: Color,
@@ -386,7 +385,7 @@ object GardenPlotApi {
         }
     }
 
-    private fun RenderWorldEvent.tryDraw3DLine(
+    private fun SkyHanniRenderWorldEvent.tryDraw3DLine(
         p1: LorenzVec,
         p2: LorenzVec,
         color: Color,

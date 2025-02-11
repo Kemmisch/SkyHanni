@@ -5,7 +5,7 @@ import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigUpdaterMigrator
 import at.hannibal2.skyhanni.events.GuiRenderEvent
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
-import at.hannibal2.skyhanni.events.LorenzTickEvent
+import at.hannibal2.skyhanni.events.minecraft.SkyHanniTickEvent
 import at.hannibal2.skyhanni.events.minecraft.WorldChangeEvent
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.CollectionUtils.addOrPut
@@ -28,7 +28,6 @@ import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import kotlin.time.Duration.Companion.seconds
 
 @SkyHanniModule
@@ -58,8 +57,8 @@ object MinionCraftHelper {
         alreadyNotified.clear()
     }
 
-    @SubscribeEvent
-    fun onTick(event: LorenzTickEvent) {
+    @HandleEvent
+    fun onTick(event: SkyHanniTickEvent) {
         if (!LorenzUtils.isBingoProfile) return
         if (!config.minionCraftHelperEnabled) return
 
@@ -121,18 +120,16 @@ object MinionCraftHelper {
 
         for (item in mainInventory) {
             val name = item.name.removeColor()
+            if (item.hasEnchantments()) continue
             val rawId = item.getInternalName()
+            if (!isMinionName(name)) {
+                if (!allIngredients.contains(rawId)) continue
+                if (!isAllowed(allMinions, rawId)) continue
 
-            if (
-                item.hasEnchantments() ||
-                !isMinionName(name) ||
-                !allIngredients.contains(rawId) ||
-                !isAllowed(allMinions, rawId)
-            ) continue
-
-            val (itemId, multiplier) = NeuItems.getPrimitiveMultiplier(rawId)
-            val old = otherItems.getOrDefault(itemId, 0)
-            otherItems[itemId] = old + item.stackSize * multiplier
+                val (itemId, multiplier) = NeuItems.getPrimitiveMultiplier(rawId)
+                val old = otherItems.getOrDefault(itemId, 0)
+                otherItems[itemId] = old + item.stackSize * multiplier
+            }
         }
 
         FirstMinionTier.firstMinionTier(otherItems, minions, tierOneMinions, tierOneMinionsDone)

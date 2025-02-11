@@ -8,9 +8,9 @@ import at.hannibal2.skyhanni.data.bazaar.HypixelBazaarFetcher
 import at.hannibal2.skyhanni.events.GuiContainerEvent
 import at.hannibal2.skyhanni.events.InventoryCloseEvent
 import at.hannibal2.skyhanni.events.InventoryFullyOpenedEvent
-import at.hannibal2.skyhanni.events.LorenzTickEvent
 import at.hannibal2.skyhanni.events.bazaar.BazaarOpenedProductEvent
 import at.hannibal2.skyhanni.events.chat.SkyHanniChatEvent
+import at.hannibal2.skyhanni.events.minecraft.SkyHanniTickEvent
 import at.hannibal2.skyhanni.features.dungeon.DungeonApi
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.test.command.ErrorManager
@@ -37,7 +37,6 @@ import at.hannibal2.skyhanni.utils.repopatterns.RepoPattern
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.inventory.ContainerChest
 import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import kotlin.time.Duration.Companion.seconds
 
 @SkyHanniModule
@@ -50,7 +49,8 @@ object BazaarApi {
     private var currentSearchedItem = ""
 
     var currentlyOpenedProduct: NeuInternalName? = null
-    var orderOptionProduct: NeuInternalName? = null
+    private var lastOpenedProduct: NeuInternalName? = null
+    private var orderOptionProduct: NeuInternalName? = null
 
     private val patternGroup = RepoPattern.group("inventory.bazaar")
 
@@ -124,6 +124,7 @@ object BazaarApi {
         if (inBazaarInventory) {
             val openedProduct = getOpenedProduct(event.inventoryItems) ?: return
             currentlyOpenedProduct = openedProduct
+            lastOpenedProduct = openedProduct
             BazaarOpenedProductEvent(openedProduct, event).post()
         }
     }
@@ -145,6 +146,13 @@ object BazaarApi {
             // pickup items from own bazaar order
             OwnInventoryData.ignoreItem(1.seconds) { it == orderOptionProduct }
         }
+
+        if (inBazaarInventory) {
+            if (item.getLore().lastOrNull()?.removeColor() == "Click to buy now!") {
+                // instant buy
+                OwnInventoryData.ignoreItem(1.seconds) { it == lastOpenedProduct }
+            }
+        }
     }
 
     private fun getOpenedProduct(inventoryItems: Map<Int, ItemStack>): NeuInternalName? {
@@ -156,8 +164,8 @@ object BazaarApi {
         return NeuInternalName.fromItemName(bazaarItem.displayName)
     }
 
-    @SubscribeEvent
-    fun onTick(event: LorenzTickEvent) {
+    @HandleEvent
+    fun onTick(event: SkyHanniTickEvent) {
 
         if (!loadedNpcPriceData) {
             loadedNpcPriceData = true
