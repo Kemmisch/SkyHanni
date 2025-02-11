@@ -2,10 +2,10 @@ package at.hannibal2.skyhanni.features.rift.area.dreadfarm
 
 import at.hannibal2.skyhanni.api.event.HandleEvent
 import at.hannibal2.skyhanni.config.ConfigUpdaterMigrator
-import at.hannibal2.skyhanni.events.LorenzTickEvent
 import at.hannibal2.skyhanni.events.PlaySoundEvent
 import at.hannibal2.skyhanni.events.ReceiveParticleEvent
-import at.hannibal2.skyhanni.events.minecraft.RenderWorldEvent
+import at.hannibal2.skyhanni.events.minecraft.SkyHanniRenderWorldEvent
+import at.hannibal2.skyhanni.events.minecraft.SkyHanniTickEvent
 import at.hannibal2.skyhanni.features.rift.RiftApi
 import at.hannibal2.skyhanni.skyhannimodule.SkyHanniModule
 import at.hannibal2.skyhanni.utils.BlockUtils.getBlockAt
@@ -70,7 +70,7 @@ object RiftWiltedBerberisHelper {
     }
 
     @HandleEvent
-    fun onTick(event: LorenzTickEvent) {
+    fun onTick(event: SkyHanniTickEvent) {
         if (!isEnabled()) return
         if (!event.isMod(5)) return
 
@@ -145,7 +145,7 @@ object RiftWiltedBerberisHelper {
     }
 
     @HandleEvent
-    fun onRenderWorld(event: RenderWorldEvent) {
+    fun onRenderWorld(event: SkyHanniRenderWorldEvent) {
         if (!isEnabled()) return
         if (!hasFarmingToolInHand) return
         if (config.onlyOnFarmland && !isOnFarmland) return
@@ -215,7 +215,7 @@ object RiftWiltedBerberisHelper {
         if (berberisLocationList.isEmpty()) fallback = false
     }
 
-    private fun renderFallbackHelper(event: RenderWorldEvent) {
+    private fun renderFallbackHelper(event: SkyHanniRenderWorldEvent) {
         val highlightColor = config.highlightColor.toSpecialColor()
         for (berberis in altBerberisLocationList) {
             with(berberis) {
@@ -237,7 +237,7 @@ object RiftWiltedBerberisHelper {
         }
     }
 
-    private fun renderHelper(event: RenderWorldEvent) {
+    private fun renderHelper(event: SkyHanniRenderWorldEvent) {
         if (berberisLocationList.isEmpty()) return
         var alpha = 0.8f
         var previousBerberis: LorenzVec? = null
@@ -277,7 +277,7 @@ object RiftWiltedBerberisHelper {
 
     private fun axisAlignedBB(loc: LorenzVec) = loc.add(0.1, -0.1, 0.1).boundingToOffset(0.8, 1.0, 0.8).expandBlock()
 
-    private fun RenderWorldEvent.drawBox(location: LorenzVec, color: Color, alphaMultiplier: Float) {
+    private fun SkyHanniRenderWorldEvent.drawBox(location: LorenzVec, color: Color, alphaMultiplier: Float) {
         drawFilledBoundingBoxNea(axisAlignedBB(location), color, alphaMultiplier)
     }
 
