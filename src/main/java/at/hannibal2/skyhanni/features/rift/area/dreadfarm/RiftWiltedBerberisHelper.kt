@@ -19,11 +19,10 @@ import at.hannibal2.skyhanni.utils.RenderUtils.drawDynamicText
 import at.hannibal2.skyhanni.utils.RenderUtils.drawFilledBoundingBox
 import at.hannibal2.skyhanni.utils.RenderUtils.expandBlock
 import at.hannibal2.skyhanni.utils.SimpleTimeMark
+import at.hannibal2.skyhanni.utils.SpecialColor.toSpecialColor
 import at.hannibal2.skyhanni.utils.collection.CollectionUtils.editCopy
 import at.hannibal2.skyhanni.utils.compat.MinecraftCompat
-import at.hannibal2.skyhanni.utils.SpecialColor.toSpecialColor
 import at.hannibal2.skyhanni.utils.toLorenzVec
-import net.minecraft.client.Minecraft
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumParticleTypes
@@ -182,8 +181,8 @@ object RiftWiltedBerberisHelper {
 
         // remove first berberis from list if broken and no berberis have grown in the last 1/4 seccond
         // (to stop you from breaking it before they all spawn in)
-        while (berberisLocationList.isNotEmpty() && berberisLocationList[0].getBlockAt() != Blocks.deadbush
-            && lastSpawn.passedSince() > 250.milliseconds
+        while (berberisLocationList.isNotEmpty() && berberisLocationList[0].getBlockAt() != Blocks.deadbush &&
+            lastSpawn.passedSince() > 250.milliseconds
         ) {
             berberisLocationList = berberisLocationList.editCopy { removeFirst() }
             lastUpdated = SimpleTimeMark.now()
@@ -198,8 +197,8 @@ object RiftWiltedBerberisHelper {
         for (berberis in altBerberisLocationList) {
             with(berberis) {
                 // if there is a particle in the same place as where the new helper thinks the next bush is,
-                if (berberisLocationList.isNotEmpty() && (currentParticles.distance(berberisLocationList[0])) < 1.3
-                    && currentParticles.distanceToPlayer() <= 20 && y != 0.0
+                if (berberisLocationList.isNotEmpty() && (currentParticles.distance(berberisLocationList[0])) < 1.3 &&
+                    currentParticles.distanceToPlayer() <= 20 && y != 0.0
                 ) {
                     lastSyncedAt = SimpleTimeMark.now()
                 }
@@ -279,7 +278,7 @@ object RiftWiltedBerberisHelper {
     private fun axisAlignedBB(loc: LorenzVec) = loc.add(0.1, -0.1, 0.1).boundingToOffset(0.8, 1.0, 0.8).expandBlock()
 
     private fun SkyHanniRenderWorldEvent.drawBox(location: LorenzVec, color: Color, alphaMultiplier: Float) {
-        drawFilledBoundingBoxNea(axisAlignedBB(location), color, alphaMultiplier)
+        drawFilledBoundingBox(axisAlignedBB(location), color, alphaMultiplier)
     }
 
     private fun isEnabled() = RiftApi.inRift() && RiftApi.inDreadfarm() && config.enabled
