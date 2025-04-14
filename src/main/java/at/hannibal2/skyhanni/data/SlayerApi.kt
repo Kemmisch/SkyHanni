@@ -29,7 +29,8 @@ import kotlin.time.Duration.Companion.seconds
 @SkyHanniModule
 object SlayerApi {
 
-    private val trackerConfig get() = SkyHanniMod.feature.slayer.itemProfitTracker
+    val config get() = SkyHanniMod.feature.slayer
+    private val trackerConfig get() = config.itemProfitTracker
     private val nameCache = TimeLimitedCache<Pair<NeuInternalName, Int>, Pair<String, Double>>(1.minutes)
 
     var questStartTime = SimpleTimeMark.farPast()
@@ -130,9 +131,8 @@ object SlayerApi {
                 isInAnyArea = true
                 isInCorrectArea = true
             } else {
-                val area = currentAreaType
-                isInAnyArea = area != null
-                isInCorrectArea = area == activeSlayer && area != null
+                isInAnyArea = currentAreaType != null
+                isInCorrectArea = currentAreaType == activeSlayer && currentAreaType != null
             }
         }
     }
@@ -141,6 +141,7 @@ object SlayerApi {
     private fun checkSlayerTypeForCurrentArea() = when (IslandAreas.currentAreaName) {
         "Graveyard",
         "Coal Mine",
+        "Revenant Cave",
         -> SlayerType.REVENANT
 
         "Spider Mound",
